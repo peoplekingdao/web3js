@@ -73,6 +73,25 @@
 		  console.log('~error:'+err);
 		}
 	  })}
+    function getUnpaidEarnings(){
+        _contract = getContract()
+        _contract.methods.getUnpaidEarnings().call().then(res=>{
+            if(res > 0){re = redeci(res,deci)}else{re = "0"}
+            document.getElementById('unp').text = '  余额：' + re
+	        console.log(re = redeci(res,18))
+        })
+    }
+
+    function claimDividend(){
+        _contract = getContract()
+        _contract.methods.claimDividend().send({from:ethereum.selectedAddress},(err,res)=>{
+        if(err){
+            console.log(err)
+        }else{
+            console.log(res)
+        }
+    }) 
+    }
 
     function busdbuyback(){
         _contract = getContract()
@@ -83,6 +102,8 @@
             console.log(res)
         }
     })}
+    
+
     function bnbbuyback(){
         _contract = getContract()
         _contract.methods.ETHBuyBack().send({from:ethereum.selectedAddress},(err,res)=>{
@@ -108,6 +129,8 @@
     <input value="bnb余额" type="button" onclick="getbalance()" ><a id="bnb"></a></br>
     <input value="ppk余额" type="button" onclick="getPeopleKingBlance()" ><a id="ppk"></a></br>
     <input value="busd余额" type="button" onclick="getBusdBlance()" ><a id="busd"></a></br>
+    <input value="未提取分红" type="button" onclick="getUnpaidEarnings()" ><a id="unp"></a></br>
+    <input value="提取分红" type="button" onclick="claimDividend()" ></br>
     <input value="busd回购" type="button" onclick="busdbuyback()" ></br>
     <input value="bnb回购" type="button" onclick="bnbbuyback()" ></br>
     <input value="busd回购和加池" type="button" onclick="busdbuybackandaddlp()" ></br>
