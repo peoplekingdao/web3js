@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script type='text/javascript' src='https://chenwm157.github.io/web3js/web3/web3.min.js'></script>
+    <script >
+      function connet(){
+        // var mate = window.ethereum;
+        if(typeof window.ethereum === 'undefined'){
+            alert('未安装钱包')
+        }
+        try{
+            window.ethereum.enable()
+        }catch(err){
+            alert('未通过')
+        }
+        if(!window.ethereum.isConnected()){
+            alert('请先连接钱包')
+        }else{
+            window.web3 = new Web3(window.ethereum);
+            // console.log(ethereum.selectedAddress)
+            document.getElementById('_connet').value = ethereum.selectedAddress.slice(-6)
+            document.getElementById('_connet').onclick = ""
+    }}  
+    contract = "0xfd9A18424B40dba01C9d4A6BDba74FF00C99951C"
+    function getContract(){
+        abi = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"BUSD","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"token","type":"address"}],"name":"ERC20BuyBack","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"ETHBuyBack","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"PeopleKing","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"WBNB","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buyBack","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"claimDividend","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getBusdBlance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"token","type":"address"}],"name":"getERC20Blance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getPeopleKingBlance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getUnpaidEarnings","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pair","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"router","outputs":[{"internalType":"contract IDEXRouter","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"toLPAndBuyBack","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"uniswapV2PairSync","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}]
+        _contract =new web3.eth.Contract(abi,contract);
+        return _contract
+    }
+
+    function redeci(num,decis){
+		if(num.length <= decis){
+		re = "0." + jia0(decis , num.length) + num
+		return re
+		}
+		re = num.slice(num.length - decis,num.length)
+		re = num.slice(0,length - decis) + "." + num.slice(num.length - decis,num.length)
+		return re
+	}
+    function jia0(decimal,len){re = "";for(i=0;i<decimal - len ;i++){re+="0"}return re }
+
+    function getPeopleKingBlance(){
+        _contract = getContract()
+        _contract.methods.getPeopleKingBlance().call().then(res=>{
+            if(res > 0){re = redeci(res,deci)}else{re = "0"}
+            document.getElementById('ppk').text = '  余额：' + re
+	        console.log(re = redeci(res,18))
+        })
+    }
+    deci = 18
+    function getBusdBlance(){
+        _contract = getContract()
+        _contract.methods.getBusdBlance().call().then(res=>{
+            if(res > 0){re = redeci(res,deci)}else{re = "0"}
+            document.getElementById('busd').text = '  余额：' + re
+	        console.log(re = redeci(res,18))
+        })
+    }
+
+    function getbalance(){
+		web3.eth.getBalance(contract, (err,result) => {
+		if (err== null) {
+		//	console.log(result);
+		  bnb = web3.utils.fromWei(result,'ether')
+		  document.getElementById('bnb').text = '  余额：' +bnb
+		}else  {
+		  console.log('~error:'+err);
+		}
+	  })}
+
+    function busdbuyback(){
+        _contract = getContract()
+        _contract.methods.buyBack().send({from:ethereum.selectedAddress},(err,res)=>{
+        if(err){
+            console.log(err)
+        }else{
+            console.log(res)
+        }
+    })}
+    function bnbbuyback(){
+        _contract = getContract()
+        _contract.methods.ETHBuyBack().send({from:ethereum.selectedAddress},(err,res)=>{
+        if(err){
+            console.log(err)
+        }else{
+            console.log(res)
+        }
+    })}
+    function busdbuybackandaddlp(){
+        _contract = getContract()
+        _contract.methods.toLPAndBuyBack().send({from:ethereum.selectedAddress},(err,res)=>{
+        if(err){
+            console.log(err)
+        }else{
+            console.log(res)
+        }
+    })}
+
+    </script>
+    
+    <input value="链接" type="button" onclick="connet()" id="_connet"> </br>
+    <input value="bnb余额" type="button" onclick="getbalance()" ><a id="bnb"></a></br>
+    <input value="ppk余额" type="button" onclick="getPeopleKingBlance()" ><a id="ppk"></a></br>
+    <input value="busd余额" type="button" onclick="getBusdBlance()" ><a id="busd"></a></br>
+    <input value="busd回购" type="button" onclick="busdbuyback()" ></br>
+    <input value="bnb回购" type="button" onclick="bnbbuyback()" ></br>
+    <input value="busd回购和加池" type="button" onclick="busdbuybackandaddlp()" ></br>
+</body>
+</html>
