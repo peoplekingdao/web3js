@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>进制转换器</title>
+</head>
+<body>
+    <!-- <script type='text/javascript' src='./web3.min.js'></script> -->
+	<script type='text/javascript' src='https://chenwm157.github.io/web3js/web3/web3.min.js'></script>
+    <script type="text/javascript" >
+    if (typeof web3 !== 'undefined') {
+    web3 = new Web3(web3.currentProvider);
+    } else {
+        // set the provider you want from Web3.providers
+        rpcurl = 'https://exchainrpc.okex.org'
+        // "http://localhost:8545"
+        web3 = new Web3(new Web3.providers.HttpProvider(rpcurl));
+    }
+
+    function addPreZero(num){var t = (num+'').length,s = '';for(var i=0; i<19-t; i++){s += '0';}return s+num;}
+    function addPreZero2(num){var t = (num+'').length,s = '';for(var i=0; i<64-t; i++){s += '0';}return s+num;}
+
+    function s16(){
+        value = document.getElementById('from1').value
+        if(value.indexOf("x") == -1){
+            value = '0x' + value
+        }
+
+        re =  web3.utils.hexToNumberString(value)
+        document.getElementById('output1').innerHTML = re
+
+    }
+
+    function s10(){
+        value = document.getElementById('from2').value
+        re =  web3.utils.toHex(value)
+        document.getElementById('output2').innerHTML = re
+    }
+
+    function s168(){
+        value = document.getElementById('from3').value
+        if(value.indexOf("x") == -1){
+            value = '0x' + value
+        }
+
+        re =  web3.utils.hexToNumberString(value)
+        re = addPreZero(re)
+        re = re.slice(0,re.length-18)+'.'+re.slice(re.length-18,re.length)
+        document.getElementById('output3').innerHTML = re
+
+    }
+
+    function s106(){
+        value = document.getElementById('from4').value
+        re =  web3.utils.toHex(value)
+        re = addPreZero2( re.split('x')[1])
+        document.getElementById('output4').innerHTML = re
+    }
+	
+	function s16totime(){
+        value = document.getElementById('from5').value
+        if(value.indexOf("x") == -1){
+            value = '0x' + value
+        }
+		//console.log(value)
+        re =  web3.utils.hexToNumberString(value)
+		//console.log(re)
+		re = format(parseInt(re)*1000)
+		//console.log(re)
+        document.getElementById('output5').innerHTML = re
+
+    }
+	function s10totime(){
+        value = document.getElementById('from6').value
+		//console.log(value)
+        //re =  web3.utils.toHex(value)
+		//console.log(re)
+		re = format(parseInt(value)*1000)
+        document.getElementById('output6').innerHTML = re
+    }
+	
+	function add0(m){return m<10?'0'+m:m }
+	function format(shijianchuo)
+	{
+	//shijianchuo是整数，否则要parseInt转换
+	var time = new Date(shijianchuo);
+	var y = time.getFullYear();
+	var m = time.getMonth()+1;
+	var d = time.getDate();
+	var h = time.getHours();
+	var mm = time.getMinutes();
+	var s = time.getSeconds();
+	return y+'-'+add0(m)+'-'+add0(d)+' '+add0(h)+':'+add0(mm)+':'+add0(s);
+	}
+	
+    </script>
+
+
+    <div align="left">
+        <input type="text" value="" id="from1" />
+        <input type="button" value="16to10" onclick='s16()'>
+        <br />
+        <textarea  rows="2" cols="33" id = 'output1'></textarea>
+        <br />
+        <input type="text" value="" id='from2'   />
+        <input type="button" value="10to16"  onclick="s10()">
+        <br />
+        <textarea  rows="2" cols="33" id = 'output2'></textarea></div>
+        <br />
+        <input type="text" value="" id="from3" />
+        <input type="button" value="16to10-18" onclick='s168()'>
+        <br />
+        <textarea  rows="2" cols="33" id = 'output3'></textarea>
+        <br />
+        <input type="text" value="" id='from4'   />
+        <input type="button" value="10to16-64"  onclick="s106()">
+        <br />
+		<textarea  rows="2" cols="33" id = 'output4'></textarea></div>
+		<br />
+		<input type="text" value="" id='from5'   />
+        <input type="button" value="16totime"  onclick="s16totime()">
+        <br />
+		<textarea  rows="2" cols="33" id = 'output5'></textarea></div>
+		<br />
+		<input type="text" value="" id='from6'   />
+        <input type="button" value="10totime"  onclick="s10totime()">
+        <br />
+        <textarea  rows="2" cols="33" id = 'output6'></textarea></div>
+</body>
+</html>
