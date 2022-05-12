@@ -24,7 +24,7 @@
         }else{
             window.web3 = new Web3(window.ethereum);
             // console.log(ethereum.selectedAddress)
-            document.getElementById('_connet').value = ethereum.selectedAddress.slice(-6)
+            document.getElementById('_connet').value = ethereum.selectedAddress.slice(0,8)+ '....'  +ethereum.selectedAddress.slice(-6)
             document.getElementById('_connet').onclick = ""
     }}  
     contract = "0xfd9A18424B40dba01C9d4A6BDba74FF00C99951C"
