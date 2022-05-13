@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抢开盘</title>
+</head>
+<body>
+    <script  src="https://chenwm157.github.io/web3js/web3/web3.min.js"></script> 
+    <!--	<script type='text/javascript' src='web3.min.js'></script> -->
+    <script type="text/javascript" >
+    
+   
+    if (typeof web3 !== 'undefined') {
+    web3 = new Web3(web3.currentProvider);
+    } else {
+        // set the provider you want from Web3.providers
+        rpcurl = "https://bsc-dataseed.binance.org/"
+        // "http://localhost:8545"
+        web3 = new Web3(new Web3.providers.HttpProvider(rpcurl));
+    }
+
+	_chainID = 56
+	
+	pancake_rount = "0x10ED43C718714eb63d5aA57B78B54704E256024E"
+	wbnb = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+	key = "";
+	address = "";
+	contract = "";
+	deci = "";
+	function getbalance(currentAccount){
+		web3.eth.getBalance(currentAccount, (err,result) => {
+		if (err== null) {
+		//	console.log(result);
+		  bnb = web3.utils.fromWei(result,'ether')
+		  document.getElementById('bnb').text = bnb
+		}else  {
+		  console.log('~error:'+err);
+		}
+	  })}
+	  
+	function fContract(addr){
+    var abi1= [{"constant":true,"inputs":[{"indexed":false,"name":"_addr","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"}]
+	var _addr = addr;
+
+    var ibacontract =new web3.eth.Contract(abi1,_addr);
+    return ibacontract
+}	
+	function get_decimals(addr){
+	ibacontract = fContract(addr)
+	ibacontract.methods.decimals().call().then(res=>{
+	//console.log(res)
+	document.getElementById('deci').text = res
+	deci = res
+	})
+	}
+	
+	function redeci(num,decis){
+		if(num.length <= decis){
+		re = "0." + jia0(decis , num.length) + num
+		return re
+		}
+		re = num.slice(num.length - decis,num.length)
+		re = num.slice(0,length - decis) + "." + num.slice(num.length - decis,num.length)
+		return re
+	}
+	
+	function getBalance_contract(addr){
+	var abi  = [{"constant":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"amountIn","type":"uint256"},{"indexed":false,"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"payable":false,"stateMutability":"view","type":"function"}]
+	var pancake =new web3.eth.Contract(abi,pancake_rount);
+	
+	ibacontract = fContract(addr)
+	ibacontract.methods.balanceOf(address).call().then(res=>{
+	console.log(res)
+	if(res > 0){re = redeci(res,deci)}else{re = "0"}
+	
+	document.getElementById('con').text = re
+	document.getElementById('numcon').value = re
+	
+	if(res > 0){
+	pancake.methods.getAmountsOut(res,[contract,wbnb]).call(null,function(err, res){
+                if(err){
+            console.log(err)
+            }else{
+				res1 = web3.utils.fromWei(res[1],'ether')
+                //console.log(web3.utils.fromWei(res[1],'ether'))
+				document.getElementById('con1').text = res1
+                }})}else{
+				document.getElementById('con1').text = "0"
+				}
+				
+	
+	
+	})
+	}
+	
+	
+	
+	function changekey(){
+		key = document.getElementById('key').value
+		address = web3.eth.accounts.privateKeyToAccount(key).address
+		document.getElementById('address').text = address
+		
+		getbalance(address)
+		//_sxnonce()
+	}
+	
+	function changecontract(){
+		contract = document.getElementById('contract').value
+		
+		web3.eth.call({
+		to: contract,
+		data: "0x06fdde03"
+		}).then(res => {
+			var anatokenname1 = "0x"+res.substring(res.length, 64)
+		//	console.log(anatokenname1 )
+			anatokenname = web3.utils.hexToUtf8(anatokenname1)
+		//	console.log(anatokenname)
+			document.getElementById('name').text = String(anatokenname).slice(33)
+		})
+		get_decimals(contract)
+		getBalance_contract(contract)
+	}
+	
+	
+	
+	
+//	function alert(news){
+	//	window.alert(news);
+	//}
+//	alert('s')
+	function  senddata(account1,key1,toaddress,value,data){
+//	get_time()
+    web3.eth.getTransactionCount(account1, (err, txCount) => {
+      // 创建交易对象
+	  
+      const txObject = {
+      nonce:    web3.utils.toHex(txCount),
+	//nonce: nonce1
+      to:       toaddress,
+      value:    web3.utils.toHex(web3.utils.toWei(value, 'ether')),
+      gasLimit: web3.utils.toHex(1500000),
+      gasPrice: web3.utils.toHex(web3.utils.toWei('6.1', 'gwei')),
+      data:data,
+      chainId:_chainID
+    }
+    web3.eth.accounts.signTransaction(
+      txObject, key1).then(function(data){
+   //   web3.eth.sendSignedTransaction(data.rawTransaction).on('receipt', (res)=>{
+//		console.log(res)
+//		alert(res.status)
+//	  });
+	 web3.eth.sendSignedTransaction(data.rawTransaction,function(err,res){
+		if(err){
+		alert(err)
+		}
+	 }).on('receipt', (res)=>{
+		console.log(res)
+		alert(res.status)
+	  });
+	
+  })
+  })
+  }
+  
+  function to064(fstr){re = "";for(i=0;i<64 - fstr.length ;i++){re+="0"}return re+fstr }
+  
+  //web3.eth.getGasPrice().then(res=>{
+	//console.log(res * 1.01)
+  //})
+ 
+  function buy(){
+    cz('buy')
+	value = document.getElementById('numbnb').value
+	
+	d1 = "0xb6f9de95" //swapExactETHForTokensSupportingFeeOnTransferTokens(uint256 amountOutMin, address[] path, address to, uint256 deadline)
+	
+	Out = "0";
+	amountOut = to064(Out)
+	pa = "0000000000000000000000000000000000000000000000000000000000000080"
+	to = to064(address.split('x')[1])
+	T = Date.parse(new Date())/1000 + 20 * 60
+	deadline = to064(String(web3.utils.toHex(T)).split('x')[1])
+	wbnb = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+	pnum = to064("2")
+	p1 = to064(wbnb.split('x')[1])
+	p2 = to064(contract.split('x')[1])
+
+	data = d1 + amountOut + pa + to + deadline + pnum + p1 + p2
+	
+	senddata(address,key,pancake_rount,value,data)
+  }
+  
+  function buy_2(){
+    cz('buy_2')
+	value = document.getElementById('numbnb').value
+	bnblm = document.getElementById('bnblimit').value
+	tklm  = document.getElementById('tokenlimit').value
+	/*
+	0x6dc5981e
+	000000000000000000000000d97a3a4bcd4b4820673b2bcbe8fcc03ded563404
+	0000000000000000000000000000000000000000000000000000000000000050
+	0000000000000000000000000000000000000000000000000000000000000002
+	0000000000000000000000000000000000000000000000000000000000000014
+	*/
+	d1 = "0x6dc5981e" //ETHBuyLimit(address token,uint256 outPercent,uint256 limittoken,uint256 limitbnb) 
+	token = to064(contract.split('x')[1])
+	outPercent = to064(String(web3.utils.toHex(75)).split('x')[1]) //25税以内可以成交  
+	limittoken = to064(String(web3.utils.toHex(tklm)).split('x')[1])
+	limitbnb = to064(String(web3.utils.toHex(bnblm)).split('x')[1])
+	data = d1 + token + outPercent + limittoken + limitbnb;
+	console.log(data)
+	/*
+	Out = "0";
+	amountOut = to064(Out)
+	pa = "0000000000000000000000000000000000000000000000000000000000000080"
+	to = to064(address.split('x')[1])
+	T = Date.parse(new Date())/1000 + 20 * 60
+	deadline = to064(String(web3.utils.toHex(T)).split('x')[1])
+	wbnb = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+	pnum = to064("2")
+	p1 = to064(wbnb.split('x')[1])
+	p2 = to064(contract.split('x')[1])
+
+	data = d1 + amountOut + pa + to + deadline + pnum + p1 + p2
+	*/
+	
+	
+	rount = '0xf182a173aB3cCe37343ffFE5f3ffb4e954e62e8D'
+	
+	senddata(address,key,rount,value,data)
+  }
+  
+  function pow(a,b){
+		var num = a
+		for(i=0;i<b;i++){
+		num = num * a
+		}
+		return num
+  }
+  
+  function jia0(decimal,len){re = "";for(i=0;i<decimal - len ;i++){re+="0"}return re }
+  function numTostr(num,decimal){
+	s = String(num)
+	a = s.split('.')
+	//console.log(a)
+	if(a.length > 1){
+		return a[0] + a[1] +jia0(decimal,a[1].length)
+	}else{
+		return a[0] + jia0(decimal,0)
+	}
+  }
+	
+
+  function sell(){
+	cz('sell')
+  
+	value = "0"
+	
+	d1 = "0x791ac947" //swapExactTokensForETHSupportingFeeOnTransferTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline)
+	
+	_amountin = document.getElementById('numcon').value
+	in1 = numTostr(_amountin,deci)
+	amountin = to064(web3.utils.toHex(in1).split('x')[1])
+	
+	Out = "0";
+	amountOut = to064(Out)
+	pa = "00000000000000000000000000000000000000000000000000000000000000a0"
+	to = to064(address.split('x')[1])
+	T = Date.parse(new Date())/1000 + 20 * 60
+	deadline = to064(String(web3.utils.toHex(T)).split('x')[1])
+	wbnb = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+	pnum = to064("2")
+	p2 = to064(wbnb.split('x')[1])
+	p1 = to064(contract.split('x')[1])
+
+	data = d1 +amountin + amountOut + pa + to + deadline + pnum + p1 + p2
+	
+	//console.log(data)
+	//return
+	senddata(address,key,pancake_rount,value,data)
+  }
+  function cz(news){
+	document.getElementById('cz').text = news;
+	
+  }
+	
+  function approve(){
+	cz('approve')
+	data = "0x095ea7b300000000000000000000000010ed43c718714eb63d5aa57b78b54704e256024effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	
+	senddata(address,key,contract,"0",data)
+  }
+  
+  function shuaxin(){
+	cz('刷新')
+	getBalance_contract(contract)
+	getbalance(address)
+  }
+  console.log(web3.eth)
+  function get_time(){
+  web3.eth.getBlockNumber().then(res=>{console.log(res)
+	web3.eth.getBlock(res).then(res=>{console.log(res.timestamp)}) 
+  })
+  }
+  
+  function getBalance_contract_pair(addr1,addr2){
+	var abi  = [{"constant":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"amountIn","type":"uint256"},{"indexed":false,"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"payable":false,"stateMutability":"view","type":"function"}]
+	var pancake =new web3.eth.Contract(abi,pancake_rount);
+	
+	ibacontract = fContract(addr1)
+	ibacontract.methods.balanceOf(addr2).call().then(res=>{
+	//console.log(res)
+	if(res > 0){re = redeci(res,deci)}else{re = "0"}
+	
+	document.getElementById('pairnum').text = re
+	canstart = true
+	})
+	}
+  canstart = false
+  old_num = 0
+  pairaddress = ""
+  function gpair(){
+  pairaddress = document.getElementById('pair').value
+  jianting_pair()
+  
+  }
+ // jianting_pair()
+  function jianting_pair(){
+  setTimeout(function(){
+  jianting_pair()
+  //  console.log(1)
+	getBalance_contract_pair(contract,pairaddress)
+  },1000)
+  }
+  aotu_buy_f = false
+  function start1(){
+	if(canstart){
+	aotu_buy_f = true
+	old_num = document.getElementById('pairnum').text
+	autobuy()
+	alert('start')
+	console.log('start')}else{
+	alert('等待lp池子代币数量刷新后重试')
+	}
+  }
+  function autobuy(){
+  setTimeout(function(){
+  autobuy()
+ // console.log(1)
+	if(document.getElementById('pairnum').text != old_num && aotu_buy_f){
+		buy_2()
+		aotu_buy_f = false
+	}
+	if(aotu_buy_f){
+	document.getElementById('qg').text = '正在抢购...'
+	}else{document.getElementById('qg').text = '抢购完成'
+	}
+  },1000)
+  }
+  
+  nonce1 = ''
+	function sxnonce(){
+    web3.eth.getTransactionCount(address, (err, txCount) => {
+	nonce1  =  web3.utils.toHex(txCount)
+		//console.log(nonce1)
+		})
+	}
+	
+	function _sxnonce(){
+  setTimeout(function(){
+  _sxnonce()
+  //  console.log(1)
+	sxnonce()
+  },1000)
+  }
+
+  //s = web3.eth.getBlock()//.then(res=>{console.log(res)})
+	//console.log(web3.eth.getBlock())
+	</script>
+	</br>
+	<a>只能交易博饼的池子，且必须是bnb加的池子<a></br>
+	<a>私钥<a><input type="text" value="" id="key"><input type="button" value="确定" onclick="changekey()"></br>
+	<a>地址:<a><a id="address"><a></br></br>
+	<a>BNB余额: <a><a id="bnb"><a></br></br>
+	<a>合约地址:<a><input type="text" value="" id="contract"><input type="button" value="确定" onclick="changecontract()"></br>
+	<a>代笔名称:<a><a id="name"><a></br></br>
+	<a>代笔余额: <a><a id="con"><a></br></br>
+	<a>代笔BNB价值: <a><a id="con1"><a></br>
+	<a>代币精度: <a><a id="deci"><a></br>
+	<input type="button" value="刷新余额" onclick="shuaxin()"></br>
+	<a>买入代币 BNB数量<a><input type="text" value="" id="numbnb"></br></br>  <a>    <a><input type="button" value="买入" onclick="buy()"> </br> 
+	<a>卖出代币 代币数量<a><input type="text" value="" id="numcon"></br></br><input type="button" value="授权" onclick="approve()"> <a>       <a><input type="button" value="卖出" onclick="sell()"> </br> 
+	<a>当前操作: <a><a><a id="cz"></br>
+	<a>lp地址:<a><input type="text" value="" id="pair"><input type="button" value="确定" onclick="gpair()"></br>
+	<a>lp代币数量:<a><a id = "pairnum"><a></br>
+	<a>加池bnb数量限制:<a><input type="text" value="" id="bnblimit"></br>
+	<a>代币加池比例限制:<a><input type="text" value="" id="tokenlimit"></br>
+	<input type="button" value="start" onclick="start1()"> </br>
+	<a>抢购状态:<a><a id = "qg"><a></br>
+	
+	
+</body>
+</html>
