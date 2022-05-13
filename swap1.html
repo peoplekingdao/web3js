@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- <script type="text/javascript" src="js/web3.min.js"></script> -->
+    <script type='text/javascript' src='https://chenwm157.github.io/web3js/web3/web3.min.js'></script>
+    <script type="text/javascript" >
+    
+   
+    if (typeof web3 !== 'undefined') {
+    web3 = new Web3(web3.currentProvider);
+    } else {
+        // set the provider you want from Web3.providers
+        rpcurl = "https://bsc-dataseed.binance.org/"
+        // "http://localhost:8545"
+        web3 = new Web3(new Web3.providers.HttpProvider(rpcurl));
+    }
+
+	_chainID = 56
+	
+	pancake_rount = "0x10ED43C718714eb63d5aA57B78B54704E256024E"
+	wbnb = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+	key = "";
+	address = "";
+	contract = "";
+	deci = "";
+	function getbalance(currentAccount){
+		web3.eth.getBalance(currentAccount, (err,result) => {
+		if (err== null) {
+		//	console.log(result);
+		  bnb = web3.utils.fromWei(result,'ether')
+		  document.getElementById('bnb').text = bnb
+		}else  {
+		  console.log('~error:'+err);
+		}
+	  })}
+	  
+	function fContract(addr){
+    var abi1= [{"constant":true,"inputs":[{"indexed":false,"name":"_addr","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"}]
+	var _addr = addr;
+
+    var ibacontract =new web3.eth.Contract(abi1,_addr);
+    return ibacontract
+}	
+	function get_decimals(addr){
+	ibacontract = fContract(addr)
+	ibacontract.methods.decimals().call().then(res=>{
+	//console.log(res)
+	document.getElementById('deci').text = res
+	deci = res
+	})
+	}
+	
+	function redeci(num,decis){
+		if(num.length <= decis){
+		re = "0." + jia0(decis , num.length) + num
+		return re
+		}
+		re = num.slice(num.length - decis,num.length)
+		re = num.slice(0,length - decis) + "." + num.slice(num.length - decis,num.length)
+		return re
+	}
+	
+	function getBalance_contract(addr){
+	var abi  = [{"constant":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"amountIn","type":"uint256"},{"indexed":false,"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"payable":false,"stateMutability":"view","type":"function"}]
+	var pancake =new web3.eth.Contract(abi,pancake_rount);
+	
+	ibacontract = fContract(addr)
+	ibacontract.methods.balanceOf(address).call().then(res=>{
+	console.log(res)
+	if(res > 0){re = redeci(res,deci)}else{re = "0"}
+	
+	document.getElementById('con').text = re
+	document.getElementById('numcon').value = re
+	
+	if(res > 0){
+	pancake.methods.getAmountsOut(res,[contract,wbnb]).call(null,function(err, res){
+                if(err){
+            console.log(err)
+            }else{
+				res1 = web3.utils.fromWei(res[1],'ether')
+                //console.log(web3.utils.fromWei(res[1],'ether'))
+				document.getElementById('con1').text = res1
+                }})}else{
+				document.getElementById('con1').text = "0"
+				}
+				
+	
+	
+	})
+	}
+	
+	
+	xh2 = true
+	function changekey(){
+		key = document.getElementById('key').value
+		address = web3.eth.accounts.privateKeyToAccount(key).address
+		document.getElementById('address').text = address
+		
+		getbalance(address)
+		//if(xh2){
+		//_sxnonce()
+		//xh2 = false
+		//}
+	}
+	
+	function changecontract(){
+		contract = document.getElementById('contract').value
+		
+		web3.eth.call({
+		to: contract,
+		data: "0x06fdde03"
+		}).then(res => {
+			var anatokenname1 = "0x"+res.substring(res.length, 64)
+		//	console.log(anatokenname1 )
+			anatokenname = web3.utils.hexToUtf8(anatokenname1)
+		//	console.log(anatokenname)
+			document.getElementById('name').text = String(anatokenname).slice(33)
+		})
+		get_decimals(contract)
+		getBalance_contract(contract)
+	}
+	
+	
+	
+	
+//	function alert(news){
+	//	window.alert(news);
+	//}
+//	alert('s')
+	
+	
+
+	
+	function  senddata(account1,key1,toaddress,value,data){
+//	get_time()
+    web3.eth.getTransactionCount(account1, (err, txCount) => {
+      // 创建交易对象
+	  
+      const txObject = {
+      nonce:    web3.utils.toHex(txCount),
+	//nonce: nonce1,
+      to:       toaddress,
+      value:    web3.utils.toHex(web3.utils.toWei(value, 'ether')),
+      gasLimit: web3.utils.toHex(1200000),
+      gasPrice: web3.utils.toHex(web3.utils.toWei('5.2', 'gwei')),
+      data:data,
+      chainId:_chainID
+    }
+    web3.eth.accounts.signTransaction(
+      txObject, key1).then(function(data){
+   //   web3.eth.sendSignedTransaction(data.rawTransaction).on('receipt', (res)=>{
+//		console.log(res)
+//		alert(res.status)
+//	  });
+	 web3.eth.sendSignedTransaction(data.rawTransaction,function(err,res){
+		if(err){
+		alert(err)
+		}
+	 }).on('receipt', (res)=>{
+		console.log(res)
+		alert(res.status)
+	  });
+	
+  })
+  })
+  }
+  
+  function to064(fstr){re = "";for(i=0;i<64 - fstr.length ;i++){re+="0"}return re+fstr }
+  
+  //web3.eth.getGasPrice().then(res=>{
+	//console.log(res * 1.01)
+  //})
+ 
+  function buy(){
+    cz('buy')
+	value = document.getElementById('numbnb').value
+	
+	d1 = "0xb6f9de95" //swapExactETHForTokensSupportingFeeOnTransferTokens(uint256 amountOutMin, address[] path, address to, uint256 deadline)
+	
+	Out = "0";
+	amountOut = to064(Out)
+	pa = "0000000000000000000000000000000000000000000000000000000000000080"
+	to = to064(address.split('x')[1])
+	T = Date.parse(new Date())/1000 + 20 * 60
+	deadline = to064(String(web3.utils.toHex(T)).split('x')[1])
+	wbnb = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+	pnum = to064("2")
+	p1 = to064(wbnb.split('x')[1])
+	p2 = to064(contract.split('x')[1])
+
+	data = d1 + amountOut + pa + to + deadline + pnum + p1 + p2
+	
+	senddata(address,key,pancake_rount,value,data)
+  }
+  
+  function pow(a,b){
+		var num = a
+		for(i=0;i<b;i++){
+		num = num * a
+		}
+		return num
+  }
+  
+  function jia0(decimal,len){re = "";for(i=0;i<decimal - len ;i++){re+="0"}return re }
+  function numTostr(num,decimal){
+	s = String(num)
+	a = s.split('.')
+	//console.log(a)
+	if(a.length > 1){
+		return a[0] + a[1] +jia0(decimal,a[1].length)
+	}else{
+		return a[0] + jia0(decimal,0)
+	}
+  }
+	
+
+  function sell(){
+	cz('sell')
+  
+	value = "0"
+	
+	d1 = "0x791ac947" //swapExactTokensForETHSupportingFeeOnTransferTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline)
+	
+	_amountin = document.getElementById('numcon').value
+	in1 = numTostr(_amountin,deci)
+	amountin = to064(web3.utils.toHex(in1).split('x')[1])
+	
+	Out = "0";
+	amountOut = to064(Out)
+	pa = "00000000000000000000000000000000000000000000000000000000000000a0"
+	to = to064(address.split('x')[1])
+	T = Date.parse(new Date())/1000 + 20 * 60
+	deadline = to064(String(web3.utils.toHex(T)).split('x')[1])
+	wbnb = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+	pnum = to064("2")
+	p2 = to064(wbnb.split('x')[1])
+	p1 = to064(contract.split('x')[1])
+
+	data = d1 +amountin + amountOut + pa + to + deadline + pnum + p1 + p2
+	
+	//console.log(data)
+	//return
+	senddata(address,key,pancake_rount,value,data)
+  }
+  function cz(news){
+  
+	document.getElementById('cz').text = news;
+	
+  }
+	
+  function approve(){
+	cz('approve')
+	data = "0x095ea7b300000000000000000000000010ed43c718714eb63d5aa57b78b54704e256024effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	
+	senddata(address,key,contract,"0",data)
+  }
+  
+  function shuaxin(){
+	cz('刷新')
+	getBalance_contract(contract)
+	getbalance(address)
+  }
+  console.log(web3.eth)
+  function get_time(){
+  web3.eth.getBlockNumber().then(res=>{console.log(res)
+	web3.eth.getBlock(res).then(res=>{console.log(res.timestamp)}) 
+  })
+  }
+  //s = web3.eth.getBlock()//.then(res=>{console.log(res)})
+	//console.log(web3.eth.getBlock())
+	</script>
+	</br>
+	<a>私钥<a><input type="text" value="" id="key"><input type="button" value="确定" onclick="changekey()"></br>
+	<a>地址:<a><a id="address"><a></br></br>
+	<a>BNB余额: <a><a id="bnb"><a></br></br>
+	<a>合约地址:<a><input type="text" value="" id="contract"><input type="button" value="确定" onclick="changecontract()"></br>
+	<a>代笔名称:<a><a id="name"><a></br></br>
+	<a>代笔余额: <a><a id="con"><a></br></br>
+	<a>代笔BNB价值: <a><a id="con1"><a></br></br>
+	<a>代币精度: <a><a id="deci"><a></br>
+	<input type="button" value="刷新余额" onclick="shuaxin()"></br>
+	<a>买入代币 BNB数量<a><input type="text" value="" id="numbnb"></br></br>  <a>    <a><input type="button" value="买入" onclick="buy()"> 
+	<a>       <a><input type="button" value="授权" onclick="approve()"> </br> </br> 
+	<a>卖出代币 代币数量<a><input type="text" value="" id="numcon"></br></br>  <a>    <a><input type="button" value="卖出" onclick="sell()"> </br> </br> 
+	<a>当前操作: <a><a><a id="cz">
+
+</body>
+</html>
