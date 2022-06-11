@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>getpinksale</title>
+</head>
+<body>
+    <script type='text/javascript' src='web3/web3.min.js'></script>
+    <script type="text/javascript" >
+    
+   
+    if (typeof web3 !== 'undefined') {
+    web3 = new Web3(web3.currentProvider);
+    } else {
+        // set the provider you want from Web3.providers
+        rpcurl = "https://bsc-dataseed3.ninicoin.io/"
+        // "http://localhost:8545"
+        web3 = new Web3(new Web3.providers.HttpProvider(rpcurl));
+    }
+
+	_chainID = 56
+
+    key = ''
+    address=''
+    toadr = ''
+    value=''
+    gl = ''
+    gp = ''
+
+    function  senddata(account1,key1,toaddress,value,data,gasp,gasl){
+
+    web3.eth.getTransactionCount(account1, (err, txCount) => {
+      // 创建交易对象
+	  
+      const txObject = {
+      nonce:    web3.utils.toHex(txCount),
+      to:       toaddress,
+      value:    web3.utils.toHex(web3.utils.toWei(value, 'ether')),
+      gasLimit: web3.utils.toHex(gasl),
+      gasPrice: web3.utils.toHex(web3.utils.toWei(gasp, 'gwei')),
+      data:data,
+      chainId:_chainID
+    }
+    web3.eth.accounts.signTransaction(
+      txObject, key1).then(function(data){
+   //   web3.eth.sendSignedTransaction(data.rawTransaction).on('receipt', (res)=>{
+//		console.log(res)
+//		alert(res.status)
+//	  });
+	 web3.eth.sendSignedTransaction(data.rawTransaction,function(err,res){
+		if(err){
+		alert(err)
+		}
+	 }).on('receipt', (res)=>{
+		console.log(res)
+		alert(res.status)
+	  });
+	
+  })
+  })
+  }
+  function getbalance(currentAccount){
+		web3.eth.getBalance(currentAccount, (err,result) => {
+		if (err== null) {
+		//	console.log(result);
+		  bnb = web3.utils.fromWei(result,'ether')
+		  document.getElementById('bnb').text = bnb
+		}else  {
+		  console.log('~error:'+err);
+		}
+	  })}
+  function changekey(){
+		key = document.getElementById('key').value
+		address = web3.eth.accounts.privateKeyToAccount(key).address
+		document.getElementById('address').text = address
+		
+		getbalance(address)
+	}
+
+    function buy(){
+	    value = document.getElementById('numbnb').value
+        toadr = document.getElementById('toaddress').value
+        gp = document.getElementById('gp1').value
+        gl = document.getElementById('gl1').value
+        var hms1 = document.getElementById('hms').value
+        var sn1 = document.getElementById('sn').value
+        
+        
+        h1 = parseInt( hms1.slice(0,2))
+        m1 = parseInt( hms1.slice(2,4))
+        s1 = parseInt( hms1.slice(4,6))
+        sn1 = parseInt(sn1)
+        
+        var tdate = getDate()
+        
+        var t0 = tdate[0] * 60 *60 + tdate[1] * 60 + tdate[2]
+        var t1 = h1 * 60 * 60 + m1 * 60 + s1 - sn1
+        console.log([t0,t1,tdate])
+        
+        var ctime =( t1 - t0 ) * 1000
+        console.log(ctime)
+
+        setTimeout(
+            function(){
+               do1()
+            },ctime
+        )
+        
+    }
+
+    
+
+    function getDate(){
+        var mydate = new Date()
+
+        newh = mydate.getHours()
+        newm = mydate.getMinutes()
+        news = mydate.getSeconds()
+        return [newh,newm,news]
+    }
+
+    function ftoadr(){
+	    
+    }
+
+    function do1(){
+        senddata(address,key,toadr,value,'',gp,gl)
+    }
+    
+
+	</script> 
+<a>私钥<a><input type="text" value="" id="key"><input type="button" value="确定" onclick="changekey()"></br>
+<a>地址:<a><a id="address"><a></br></br>
+<a>BNB余额: <a><a id="bnb"><a></br></br>
+<a>预售地址<a><input type="text" value="" id="toaddress"></br> 
+<a>抢预售 BNB数量<a><input type="text" value="" id="numbnb"></br>
+<a>gas price<a><input type="text" value="500" id="gp1"></br>
+<a>gas limit<a><input type="text" value="500000" id="gl1"></br>
+<a>提前n秒</a><input type="text" value="6" id="sn"></br>
+<a>抢预售 时间<a>
+    <input type="text" value="230000" id="hms"><a>（格式示意12点半表示 123000）</a>
+ </br></br>  <a>    <a><input type="button" value="抢买" onclick="buy()"> 
+</body>
+</html>
